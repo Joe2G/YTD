@@ -80,7 +80,7 @@
 
             downloadVideo.addEventListener('click', function() {
                 var url = urlInput.value;
-                if (!url || !isValidURL(url)) {
+                if (!isValidURL(url)) {
                     message.textContent = 'Please enter a valid YouTube URL.';
                     return;
                 }
@@ -90,7 +90,7 @@
 
             downloadAudio.addEventListener('click', function() {
                 var url = urlInput.value;
-                if (!url || !isValidURL(url)) {
+                if (!isValidURL(url)) {
                     message.textContent = 'Please enter a valid YouTube URL.';
                     return;
                 }
@@ -99,8 +99,9 @@
             });
 
             function isValidURL(url) {
-                // Simple check for YouTube URL format
-                return url.startsWith('https://www.youtube.com/') || url.startsWith('https://m.youtube.com/');
+                // Regular expression to match YouTube URL formats
+                var youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?(.*&)?v=|(embed|v)\/|c\/)([\w\-]+)|youtu\.be\/([\w\-]+))(&.*)?$/;
+                return youtubeRegex.test(url);
             }
 
             function downloadFile(url, type) {
