@@ -80,26 +80,33 @@
 
             downloadVideo.addEventListener('click', function() {
                 var url = urlInput.value;
-                if (!url) {
-                    message.textContent = 'Please enter a URL.';
+                if (!url || !isValidURL(url)) {
+                    message.textContent = 'Please enter a valid YouTube URL.';
                     return;
                 }
+                downloadVideo.disabled = true;
                 downloadFile(url, 'video');
             });
 
             downloadAudio.addEventListener('click', function() {
                 var url = urlInput.value;
-                if (!url) {
-                    message.textContent = 'Please enter a URL.';
+                if (!url || !isValidURL(url)) {
+                    message.textContent = 'Please enter a valid YouTube URL.';
                     return;
                 }
+                downloadAudio.disabled = true;
                 downloadFile(url, 'audio');
             });
+
+            function isValidURL(url) {
+                // Simple check for YouTube URL format
+                return url.startsWith('https://www.youtube.com/') || url.startsWith('https://m.youtube.com/');
+            }
 
             function downloadFile(url, type) {
                 message.textContent = 'Downloading...';
 
-                fetch('http://localhost:8000/download', {  
+                fetch('https://localhost:8000/download', {  
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -122,13 +129,16 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    message.textContent = 'Error occurred while downloading.';
+                    message.textContent = 'Error occurred while downloading. Please try again.';
                     console.error('Error occurred while downloading.', error.message);
+                    resetUI();
                 });
             }
 
             function resetUI() {
                 urlInput.value = '';
+                downloadVideo.disabled = false;
+                downloadAudio.disabled = false;
             }
         }
     </script>
