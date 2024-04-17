@@ -58,7 +58,8 @@
             margin: 10px auto;
         }
     </style>
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval';">
+    <!-- Add CSP meta tag to allow inline script and string evaluation -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';">
 </head>
 <body>
     <h1>Video Downloader</h1>
@@ -72,6 +73,7 @@
     <button id="download-video">Download Video</button>
     <button id="confirm" style="display: none;">Confirm</button>
 
+    <!-- Move inline scripts to external files if possible -->
     <script>
         window.onload = function() {
             var urlInput = document.getElementById('url');
