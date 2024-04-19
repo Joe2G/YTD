@@ -17,45 +17,24 @@
             color: #fff;
         }
 
-        input[type="text"],
-        button {
-            margin: 10px auto;
-            padding: 10px;
-            width: 300px;
-            border: none;
-            border-radius: 5px;
-            display: block;
-        }
-
-        input[type="text"] {
-            background-color: #333;
-            color: #fff;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
         #message {
             text-align: center;
             color: #ff6666;
         }
 
-        /* Additional styles for the second set of buttons */
+        /* Additional styles for the download buttons */
         #download-buttons {
             text-align: center;
         }
 
         #download-buttons button {
-            display: inline-block;
             margin: 10px;
             padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         #download-buttons button:hover {
@@ -67,7 +46,6 @@
 </head>
 <body>
     <h1>Video Downloader</h1>
-    <input type="text" id="url" placeholder="Enter YouTube video URL">
     <p id="message"></p>
     <div id="download-buttons">
         <button id="download-video">Download Video</button>
@@ -77,13 +55,12 @@
     <!-- Move inline scripts to external files if possible -->
     <script>
         window.onload = function() {
-            var urlInput = document.getElementById('url');
             var message = document.getElementById('message');
             var downloadVideo = document.getElementById('download-video');
             var downloadAudio = document.getElementById('download-audio');
 
             downloadVideo.addEventListener('click', function() {
-                var url = urlInput.value;
+                var url = prompt("Enter the YouTube video URL:");
                 if (!isValidURL(url)) {
                     message.textContent = 'Please enter a valid YouTube URL.';
                     return;
@@ -93,7 +70,7 @@
             });
 
             downloadAudio.addEventListener('click', function() {
-                var url = urlInput.value;
+                var url = prompt("Enter the YouTube video URL:");
                 if (!isValidURL(url)) {
                     message.textContent = 'Please enter a valid YouTube URL.';
                     return;
@@ -110,7 +87,7 @@
             function downloadFile(url, type) {
                 message.textContent = 'Downloading...';
 
-                fetch('https://api-4uz6.onrender.com/download', {  
+                fetch('https://your-fastapi-endpoint/download', {  
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -148,7 +125,6 @@
             }
 
             function resetUI() {
-                urlInput.value = '';
                 downloadVideo.disabled = false;
                 downloadAudio.disabled = false;
             }
