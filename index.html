@@ -46,6 +46,21 @@
             text-align: center;
             color: #ff6666;
         }
+
+        /* Additional styles for the second set of buttons */
+        #download-buttons {
+            text-align: center;
+        }
+
+        #download-buttons button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+        }
+
+        #download-buttons button:hover {
+            background-color: #45a049;
+        }
     </style>
     <!-- Add CSP meta tag to allow inline script and string evaluation -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';">
@@ -54,8 +69,10 @@
     <h1>Video Downloader</h1>
     <input type="text" id="url" placeholder="Enter YouTube video URL">
     <p id="message"></p>
-    <button id="download-audio">Download Audio</button>
-    <button id="download-video">Download Video</button>
+    <div id="download-buttons">
+        <button id="download-video">Download Video</button>
+        <button id="download-audio">Download Audio</button>
+    </div>
 
     <!-- Move inline scripts to external files if possible -->
     <script>
@@ -86,9 +103,8 @@
             });
 
             function isValidURL(url) {
-                // Regular expression to match YouTube URL formats
-                var youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?(.*&)?v=|(embed|v)\/|c\/)([\w\-]+)|youtu\.be\/([\w\-]+))(&.*)?$/;
-                return youtubeRegex.test(url);
+                // Check if the URL starts with "https://"
+                return url.startsWith('https://');
             }
 
             function downloadFile(url, type) {
