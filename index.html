@@ -1,7 +1,11 @@
 <!DOCTYPE html>
-<html>
-<head>
+<html lang="en">
+<head>   
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Downloader</title>
+    <link rel="icon" href="https://github.com/Joe2G/YTD/blob/main/Web%20Icon.png" type="image/png">
+
     <style>
         body {
             margin: 0;
@@ -9,6 +13,7 @@
             background-color: #222;
             color: #fff;
             font-family: Arial, sans-serif;
+            position: relative;
         }
 
         h1 {
@@ -17,118 +22,258 @@
             color: #fff;
         }
 
+        input[type="text"], select, button {
+            margin: 10px auto;
+            padding: 10px;
+            width: 300px;
+            border: none;
+            border-radius: 5px;
+            display: block;
+        }
+
+        input[type="text"], select {
+            background-color: #333;
+            color: #fff;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
         #message {
             text-align: center;
             color: #ff6666;
         }
 
-        /* Additional styles for the download buttons */
-        #download-buttons {
+        #resolution-screen {
+            display: none;
             text-align: center;
         }
 
-        #download-buttons button {
-            margin: 10px;
-            padding: 10px 20px;
+        #resolution-screen select,
+        #resolution-screen button {
+            margin-top: 10px;
+        }
+
+        #resolution-screen button {
             background-color: #4CAF50;
             color: #fff;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
         }
 
-        #download-buttons button:hover {
+        #resolution-screen button:hover {
             background-color: #45a049;
         }
+
+        #byJoe {
+            position: fixed;
+            top: 100;
+            left: 50%;
+            transform: translateX(-50%);
+            display: block;
+        }
+
+        #progress-container {
+            width: 300px; /* Make sure it spans the full width of its container */
+            margin: 10px auto; /* Adjust margin as needed */
+        }
+        
+        #progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            transition: width 2s ease-in-out;
+            /*margin: 10px auto;*/
+            display: block;
+            position: relative; /* Add relative positioning */
+        }
+
+        #progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 0%; /* Adjust the width to match button space */
+            background-color: #222; /* Same as body background */
+        }
+
     </style>
-    <!-- Add CSP meta tag to allow inline script and string evaluation -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval';">
 </head>
 <body>
     <h1>Video Downloader</h1>
+    <input type="text" id="url" placeholder="Enter YouTube video URL" aria-label="YouTube URL">
     <p id="message"></p>
-    <div id="download-buttons">
-        <button id="download-video">Download Video</button>
-        <button id="download-audio">Download Audio</button>
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    
+    <!-- Download buttons -->
+    <button id="download-video" aria-label="Download Video">Download Video</button>
+    <button id="download-audio" aria-label="Download Audio">Download Audio</button>
+
+    <!-- Second screen -->
+    <div id="resolution-screen">
+        <select id="resolution" aria-label="Select resolution">
+            <option value="360">360p</option>
+            <option value="720">720p</option>
+        </select>
+        <button id="confirm" aria-label="Confirm Download">Confirm</button>
     </div>
 
-    <!-- Move inline scripts to external files if possible -->
+    <!-- Spinner -->
+    <p id="byJoe" style="text-align: center; display: block;">By Joe</p>
     <script>
-        window.onload = function() {
-            var message = document.getElementById('message');
-            var downloadVideo = document.getElementById('download-video');
-            var downloadAudio = document.getElementById('download-audio');
+    const API_URL = 'http://localhost:8000/download';
 
-            downloadVideo.addEventListener('click', function() {
-                var url = prompt("Enter the YouTube video URL:");
-                if (!isValidURL(url)) {
-                    message.textContent = 'Please enter a valid YouTube URL.';
-                    return;
+    window.onload = function() {
+        var urlInput = document.getElementById('url');
+        var message = document.getElementById('message');
+        var downloadVideo = document.getElementById('download-video');
+        var downloadAudio = document.getElementById('download-audio');
+        var resolutionScreen = document.getElementById('resolution-screen');
+        var resolutionSelect = document.getElementById('resolution');
+        var confirmButton = document.getElementById('confirm');
+        var progressBar = document.getElementById('progress-bar')
+
+        // Initially hide the resolution screen and progress par
+        resolutionScreen.style.display = 'none';
+        progressBar.style.display = 'none';
+
+        urlInput.addEventListener('input', function() { 
+            message.textContent = '';
+        });
+
+        // Event listener for "Download Video" button
+        downloadVideo.addEventListener('click', function() {
+            var url = urlInput.value;
+            if (!url || !isValidURL(url)) {
+                message.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
+
+            downloadVideo.disabled = true;
+            message.textContent = '';
+            resolutionScreen.style.display = 'block';
+             
+            downloadVideo.style.display = 'none';
+            downloadAudio.style.display = 'none';
+        });
+
+        // Event listener for "Confirm" button
+        confirmButton.addEventListener('click', function() {
+            var url = urlInput.value;
+            if (!isValidURL(url)) {
+                message.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
+            initiateDownload(urlInput, 'video');
+            downloadFile(url, 'video');
+        });
+
+        downloadAudio.addEventListener('click', function() {
+            var url = urlInput.value;
+            if (!isValidURL(url)) {
+                message.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
+
+            initiateDownload(urlInput, 'audio');
+            downloadFile(url, 'audio');
+            downloadVideo.style.display = 'none';
+            downloadAudio.style.display = 'none';
+        });
+
+        function initiateDownload(input, type) { 
+            var url = input.value;
+            input.disabled = true;
+            if (type === 'video') {
+                resolutionScreen.style.display = 'none';
+            
                 }
-                downloadVideo.disabled = true;
-                downloadFile(url, 'video');
-            });
-
-            downloadAudio.addEventListener('click', function() {
-                var url = prompt("Enter the YouTube video URL:");
-                if (!isValidURL(url)) {
-                    message.textContent = 'Please enter a valid YouTube URL.';
-                    return;
-                }
-                downloadAudio.disabled = true;
-                downloadFile(url, 'audio');
-            });
-
-            function isValidURL(url) {
-                // Check if the URL starts with "https://"
-                return url.startsWith('https://');
-            }
-
-            function downloadFile(url, type) {
-                message.textContent = 'Downloading...';
-
-                fetch('https://your-fastapi-endpoint/download', {  
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: url, type: type })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.blob(); // Get the response as a Blob
-                })
-                .then(blob => {
-                    // Create a URL for the Blob
-                    var url = window.URL.createObjectURL(blob);
-                    // Create a link element
-                    var a = document.createElement('a');
-                    // Set the href attribute to the URL
-                    a.href = url;
-                    // Set the download attribute to specify the file name
-                    a.download = 'downloaded_file';
-                    // Click the link to trigger the download
-                    a.click();
-                    // Clean up
-                    window.URL.revokeObjectURL(url);
-                    message.textContent = 'Download complete!';
-                    resetUI();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    message.textContent = 'Error occurred while downloading. Please try again.';
-                    console.error('Error occurred while downloading.', error.message);
-                    resetUI();
-                });
-            }
-
-            function resetUI() {
-                downloadVideo.disabled = false;
-                downloadAudio.disabled = false;
-            }
+                downloadFile(url, type);
         }
-    </script>
+
+        function isValidURL(url) {
+            const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+            return pattern.test(url);
+        }
+
+        function downloadFile(url, type) {
+            var selectedResolution = resolutionSelect.value;
+            message.textContent = 'Downloading...';
+            progressBar.style.display = 'block';
+            progressBar.style.width = '0%'
+
+            var progress = 0;
+            var interval = setInterval(function() {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 300); // Update every 300ms
+
+
+            fetch(API_URL, {  
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url, type: type, resolution: selectedResolution })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                } catch {
+                        throw new Error('Response not in JSON format');
+                }
+            });
+                
+            })
+            .then(data => {
+                message.textContent = 'Download complete!';
+                console.log('Download complete!', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                message.textContent = 'Error occurred while downloading. Please try again.';
+            })
+            .finally(() => {   
+                resetUI();
+            });
+        }
+
+        function resetUI() {
+            urlInput.value = '';
+            urlInput.disabled = false;
+
+            resolutionScreen.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressBar.style.display = 'none';
+
+            downloadVideo.style.display = 'block';
+            downloadAudio.style.display = 'block';
+
+            downloadVideo.disabled = false;
+            downloadAudio.disabled = false;
+            confirmButton.disabled = false;
+            setTimeout(function() {
+                message.textContent = '';
+            }, 4000);
+        }
+
+    }
+</script>
 </body>
 </html>
