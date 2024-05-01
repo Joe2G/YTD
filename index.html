@@ -62,8 +62,8 @@
         }
 
         #progress-container {
-            width: 300px; /* Make sure it spans the full width of its container */
-            margin: 10px auto; /* Adjust margin as needed */
+            width: 300px;
+            margin: 10px auto;
         }
         
         #progress-bar {
@@ -71,9 +71,8 @@
             height: 20px;
             background-color: #4CAF50;
             transition: width 2s ease-in-out;
-            /*margin: 10px auto;*/
             display: block;
-            position: relative; /* Add relative positioning */
+            position: relative;
         }
 
         #progress-bar::before {
@@ -82,8 +81,8 @@
             top: 0;
             right: 0;
             bottom: 0;
-            width: 0%; /* Adjust the width to match button space */
-            background-color: #222; /* Same as body background */
+            width: 0%;
+            background-color: #222;
         }
 
     </style>
@@ -100,7 +99,7 @@
     <button id="download-video" aria-label="Download Video">Download Video</button>
     <button id="download-audio" aria-label="Download Audio">Download Audio</button>
 
-    <!-- Spinner -->
+    <!-- By Joe -->
     <p id="byJoe" style="text-align: center; display: block;">By Joe</p>
     <script>
     const API_URL = 'https://api-4uz6.onrender.com/download';
@@ -110,43 +109,20 @@
         var message = document.getElementById('message');
         var downloadVideo = document.getElementById('download-video');
         var downloadAudio = document.getElementById('download-audio');
-        var resolutionScreen = document.getElementById('resolution-screen');
-        var resolutionSelect = document.getElementById('resolution');
-        var confirmButton = document.getElementById('confirm');
         var progressBar = document.getElementById('progress-bar')
 
-        // Initially hide the resolution screen and progress par
-        resolutionScreen.style.display = 'none';
         progressBar.style.display = 'none';
 
         urlInput.addEventListener('input', function() { 
             message.textContent = '';
         });
 
-        // Event listener for "Download Video" button
-        downloadVideo.addEventListener('click', function() {
-            var url = urlInput.value;
-            if (!url || !isValidURL(url)) {
-                message.textContent = 'Please enter a valid YouTube URL.';
-                return;
-            }
-
-            downloadVideo.disabled = true;
-            message.textContent = '';
-            resolutionScreen.style.display = 'block';
-             
-            downloadVideo.style.display = 'none';
-            downloadAudio.style.display = 'none';
-        });
-
-        // Event listener for "Confirm" button
-        confirmButton.addEventListener('click', function() {
+                downloadVideo.addEventListener('click', function() {
             var url = urlInput.value;
             if (!isValidURL(url)) {
                 message.textContent = 'Please enter a valid YouTube URL.';
                 return;
             }
-            var selectedResolution = resolutionSelect.value;
             downloadFile(url, 'video');
         });
 
@@ -163,14 +139,11 @@
             downloadAudio.style.display = 'none';
         });
 
-        function initiateDownload(input, type) { 
+        function initiateDownload(input, type) {
             var url = input.value;
             input.disabled = true;
-            if (type === 'video') {
-                resolutionScreen.style.display = 'none';
-            
-                }
-                downloadFile(url, type);
+
+            downloadFile(url, type);
         }
 
         function isValidURL(url) {
@@ -190,7 +163,7 @@
                 if (progress >= 100) {
                     clearInterval(interval);
                 }
-            }, 300); // Update every 300ms
+            }, 300);
 
 
             fetch(API_URL, {  
@@ -210,7 +183,7 @@
                 let blobUrl = window.URL.createObjectURL(blob);
                 let link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = ''; // This should be assigned dynamically if the server specifies a filename
+                link.download = '';
                 document.body.appendChild(link);
                 link.click();
                 window.URL.revokeObjectURL(blobUrl);
@@ -230,7 +203,6 @@
             urlInput.value = '';
             urlInput.disabled = false;
 
-            resolutionScreen.style.display = 'none';
             progressBar.style.width = '0%';
             progressBar.style.display = 'none';
 
@@ -239,7 +211,6 @@
 
             downloadVideo.disabled = false;
             downloadAudio.disabled = false;
-            confirmButton.disabled = false;
             setTimeout(function() {
                 message.textContent = '';
             }, 4000);
