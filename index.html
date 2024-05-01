@@ -82,8 +82,8 @@
         }
 
         #progress-container {
-            width: 300px;
-            margin: 10px auto;
+            width: 300px; /* Make sure it spans the full width of its container */
+            margin: 10px auto; /* Adjust margin as needed */
         }
         
         #progress-bar {
@@ -91,8 +91,9 @@
             height: 20px;
             background-color: #4CAF50;
             transition: width 2s ease-in-out;
+            /*margin: 10px auto;*/
             display: block;
-            position: relative;
+            position: relative; /* Add relative positioning */
         }
 
         #progress-bar::before {
@@ -101,8 +102,8 @@
             top: 0;
             right: 0;
             bottom: 0;
-            width: 0%;
-            background-color: #222;
+            width: 0%; /* Adjust the width to match button space */
+            background-color: #222; /* Same as body background */
         }
 
     </style>
@@ -131,110 +132,150 @@
     <!-- Spinner -->
     <p id="byJoe" style="text-align: center; display: block;">By Joe</p>
     <script>
-        // Update API URL with your backend endpoint
-        const API_URL = 'https://api-4uz6.onrender.com/download';
+    const API_URL = 'https://api-4uz6.onrender.com/download';
 
-        window.onload = function() {
-            var urlInput = document.getElementById('url');
-            var message = document.getElementById('message');
-            var downloadVideo = document.getElementById('download-video');
-            var downloadAudio = document.getElementById('download-audio');
-            var resolutionScreen = document.getElementById('resolution-screen');
-            var resolutionSelect = document.getElementById('resolution');
-            var confirmButton = document.getElementById('confirm');
-            var progressBar = document.getElementById('progress-bar')
+    window.onload = function() {
+        var urlInput = document.getElementById('url');
+        var message = document.getElementById('message');
+        var downloadVideo = document.getElementById('download-video');
+        var downloadAudio = document.getElementById('download-audio');
+        var resolutionScreen = document.getElementById('resolution-screen');
+        var resolutionSelect = document.getElementById('resolution');
+        var confirmButton = document.getElementById('confirm');
+        var progressBar = document.getElementById('progress-bar')
 
-            // Initially hide the resolution screen and progress bar
+        // Initially hide the resolution screen and progress par
+        resolutionScreen.style.display = 'none';
+        progressBar.style.display = 'none';
+
+        urlInput.addEventListener('input', function() { 
+            message.textContent = '';
+        });
+
+        // Event listener for "Download Video" button
+        downloadVideo.addEventListener('click', function() {
+            var url = urlInput.value;
+            if (!url || !isValidURL(url)) {
+                message.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
+
+            downloadVideo.disabled = true;
+            message.textContent = '';
+            resolutionScreen.style.display = 'block';
+             
+            downloadVideo.style.display = 'none';
+            downloadAudio.style.display = 'none';
+        });
+
+        // Event listener for "Confirm" button
+        confirmButton.addEventListener('click', function() {
+            var url = urlInput.value;
+            if (!isValidURL(url)) {
+                message.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
+            initiateDownload(urlInput, 'video');
+            downloadFile(url, 'video');
+        });
+
+        downloadAudio.addEventListener('click', function() {
+            var url = urlInput.value;
+            if (!isValidURL(url)) {
+                message.textContent = 'Please enter a valid YouTube URL.';
+                return;
+            }
+
+            initiateDownload(urlInput, 'audio');
+            downloadFile(url, 'audio');
+            downloadVideo.style.display = 'none';
+            downloadAudio.style.display = 'none';
+        });
+
+        function initiateDownload(input, type) { 
+            var url = input.value;
+            input.disabled = true;
+            if (type === 'video') {
+                resolutionScreen.style.display = 'none';
+            
+                }
+                downloadFile(url, type);
+        }
+
+        function isValidURL(url) {
+            const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+            return pattern.test(url);
+        }
+
+        function downloadFile(url, type) {
+            var selectedResolution = resolutionSelect.value;
+            message.textContent = 'Downloading...';
+            progressBar.style.display = 'block';
+            progressBar.style.width = '0%'
+
+            var progress = 0;
+            var interval = setInterval(function() {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 300); // Update every 300ms
+
+
+            fetch(API_URL, {  
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url, type: type, resolution: selectedResolution })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                } catch {
+                        throw new Error('Response not in JSON format');
+                }
+            });
+                
+            })
+            .then(data => {
+                message.textContent = 'Download complete!';
+                console.log('Download complete!', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                message.textContent = 'Error occurred while downloading. Please try again.';
+            })
+            .finally(() => {   
+                resetUI();
+            });
+        }
+
+        function resetUI() {
+            urlInput.value = '';
+            urlInput.disabled = false;
+
             resolutionScreen.style.display = 'none';
+            progressBar.style.width = '0%';
             progressBar.style.display = 'none';
 
-            urlInput.addEventListener('input', function() { 
+            downloadVideo.style.display = 'block';
+            downloadAudio.style.display = 'block';
+
+            downloadVideo.disabled = false;
+            downloadAudio.disabled = false;
+            confirmButton.disabled = false;
+            setTimeout(function() {
                 message.textContent = '';
-            });
-
-            // Event listener for "Download Video" button
-            downloadVideo.addEventListener('click', function() {
-                var url = urlInput.value;
-                if (!url || !isValidURL(url)) {
-                    message.textContent = 'Please enter a valid YouTube URL.';
-                    return;
-                }
-
-                initiateDownload(url, 'video');
-                downloadVideo.disabled = true;
-            });
-
-            // Event listener for "Download Audio" button
-            downloadAudio.addEventListener('click', function() {
-                var url = urlInput.value;
-                if (!url || !isValidURL(url)) {
-                    message.textContent = 'Please enter a valid YouTube URL.';
-                    return;
-                }
-
-                initiateDownload(url, 'audio');
-                downloadAudio.disabled = true;
-            });
-
-            // Event listener for "Confirm" button
-            confirmButton.addEventListener('click', function() {
-                var url = urlInput.value;
-                var type = resolutionSelect.value === 'video' ? 'video' : 'audio';
-                initiateDownload(url, type);
-            });
-
-            function initiateDownload(url, type) {
-                message.textContent = 'Downloading...';
-                progressBar.style.display = 'block';
-                progressBar.style.width = '0%';
-
-                fetch(API_URL, {  
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: url, type: type })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Once you receive the download link, initiate download
-                    window.open(data.download_link, '_blank');
-                    message.textContent = 'Download complete!';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    message.textContent = 'Error occurred while downloading. Please try again.';
-                })
-                .finally(() => {   
-                    resetUI();
-                });
-            }
-
-            function isValidURL(url) {
-                const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-                return pattern.test(url);
-            }
-
-            function resetUI() {
-                urlInput.value = '';
-                urlInput.disabled = false;
-
-                progressBar.style.width = '0%';
-                progressBar.style.display = 'none';
-
-                downloadVideo.disabled = false;
-                downloadAudio.disabled = false;
-                confirmButton.disabled = false;
-                setTimeout(function() {
-                    message.textContent = '';
-                }, 4000);
-            }
+            }, 4000);
         }
-    </script>
+
+    }
+</script>
 </body>
 </html>
