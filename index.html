@@ -208,7 +208,6 @@
         }
 
         function downloadFile(url, type) {
-            var selectedResolution = resolutionSelect.value;
             message.textContent = 'Preparing download...';
             progressBar.style.display = 'block';
             progressBar.style.width = '0%'
@@ -228,9 +227,14 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ url: url, type: type, resolution: selectedResolution })
+                body: JSON.stringify({ url: url, type: type })
             })
-            .then(response => response.blob()) // Convert to blob
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
             .then(blob => {
                 let blobUrl = window.URL.createObjectURL(blob);
                 let link = document.createElement('a');
