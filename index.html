@@ -124,6 +124,8 @@
                 return;
             }
             downloadFile(url, 'video');
+            downloadVideo.style.display = 'none';
+            downloadAudio.style.display = 'none';
         });
 
         downloadAudio.addEventListener('click', function() {
