@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0FPG5RXYMX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0FPG5RXYMX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  gtag('config', 'G-0FPG5RXYMX');
-</script>
+      gtag('config', 'G-0FPG5RXYMX');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()"/>
@@ -73,161 +73,141 @@
         #progress-container {
             width: 300px;
             margin: 10px auto;
+            display: none;
         }
-        
+
         #progress-bar {
             width: 0%;
             height: 20px;
             background-color: #4CAF50;
-            transition: width 2s ease-in-out;
-            display: block;
-            position: relative;
+            transition: width 0.5s ease-in-out;
         }
 
-        #progress-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 0%;
-            background-color: #222;
+        #byJoe {
+            margin-top: 20px;
         }
-
     </style>
 </head>
 <body>
-    <h1>Video Downloader</h1>
-    <input type="text" id="url" placeholder="Enter YouTube video URL" aria-label="YouTube URL">
-    <p id="message"></p>
-    <div id="progress-container">
-        <div id="progress-bar"></div>
+    <div class="container">
+        <h1>Video Downloader</h1>
+        <input type="text" id="url" placeholder="Enter YouTube video URL" aria-label="YouTube URL">
+        <p id="message"></p>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        
+        <!-- Download buttons -->
+        <button id="download-video" aria-label="Download Video">Download Video</button>
+        <button id="download-audio" aria-label="Download Audio">Download Audio</button>
+        <!-- By Joe -->
+        <p id="byJoe">By Joe</p>
     </div>
     
-    <!-- Download buttons -->
-    <button id="download-video" aria-label="Download Video">Download Video</button>
-    <button id="download-audio" aria-label="Download Audio">Download Audio</button>
-
-    <!-- By Joe -->
-    <p id="byJoe" style="text-align: center; display: block;">By Joe</p>
     <script>
-    const API_URL = 'https://api-4uz6.onrender.com/download';
+        const API_URL = 'https://api-4uz6.onrender.com/download';
 
-    window.onload = function() {
-        var urlInput = document.getElementById('url');
-        var message = document.getElementById('message');
-        var downloadVideo = document.getElementById('download-video');
-        var downloadAudio = document.getElementById('download-audio');
-        var progressBar = document.getElementById('progress-bar')
+        window.onload = function() {
+            var urlInput = document.getElementById('url');
+            var message = document.getElementById('message');
+            var downloadVideo = document.getElementById('download-video');
+            var downloadAudio = document.getElementById('download-audio');
+            var progressBar = document.getElementById('progress-bar');
+            var progressContainer = document.getElementById('progress-container');
 
-        progressBar.style.display = 'none';
-
-        urlInput.addEventListener('input', function() { 
-            message.textContent = '';
-        });
-
-                downloadVideo.addEventListener('click', function() {
-            var url = urlInput.value;
-            if (!isValidURL(url)) {
-                message.textContent = 'Please enter a valid YouTube URL.';
-                return;
-            }
-            downloadFile(url, 'video');
-            downloadVideo.style.display = 'none';
-            downloadAudio.style.display = 'none';
-        });
-
-        downloadAudio.addEventListener('click', function() {
-            var url = urlInput.value;
-            if (!isValidURL(url)) {
-                message.textContent = 'Please enter a valid YouTube URL.';
-                return;
-            }
-
-            initiateDownload(urlInput, 'audio');
-            downloadFile(url, 'audio');
-            downloadVideo.style.display = 'none';
-            downloadAudio.style.display = 'none';
-        });
-
-        function initiateDownload(input, type) {
-            var url = input.value;
-            input.disabled = true;
-
-            downloadFile(url, type);
-        }
-
-        function isValidURL(url) {
-            const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-            return pattern.test(url);
-        }
-
-        function downloadFile(url, type) {
-            message.textContent = 'Preparing download...';
-            progressBar.style.display = 'block';
-            progressBar.style.width = '0%'
-
-            var progress = 0;
-            var interval = setInterval(function() {
-                progress += 10;
-                progressBar.style.width = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
-                }
-            }, 300);
-
-
-            fetch(API_URL, {  
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ url: url, type: type })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                let blobUrl = window.URL.createObjectURL(blob);
-                let link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = '';
-                document.body.appendChild(link);
-                link.click();
-                window.URL.revokeObjectURL(blobUrl);
-                link.remove();
-                message.textContent = 'Download started...';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                message.textContent = 'Error occurred while downloading. Please try again.';
-            })
-            .finally(() => {   
-                resetUI();
-            });
-        }
-
-        function resetUI() {
-            urlInput.value = '';
-            urlInput.disabled = false;
-
-            progressBar.style.width = '0%';
-            progressBar.style.display = 'none';
-
-            downloadVideo.style.display = 'block';
-            downloadAudio.style.display = 'block';
-
-            downloadVideo.disabled = false;
-            downloadAudio.disabled = false;
-            setTimeout(function() {
+            urlInput.addEventListener('input', function() { 
                 message.textContent = '';
-            }, 4000);
-        }
+            });
 
-    }
-</script>
+            downloadVideo.addEventListener('click', function() {
+                handleDownload('video');
+            });
+
+            downloadAudio.addEventListener('click', function() {
+                handleDownload('audio');
+            });
+
+            function handleDownload(type) {
+                var url = urlInput.value;
+                if (!isValidURL(url)) {
+                    message.textContent = 'Please enter a valid YouTube URL.';
+                    return;
+                }
+                initiateDownload(url, type);
+                downloadVideo.style.display = 'none';
+                downloadAudio.style.display = 'none';
+            }
+
+            function isValidURL(url) {
+                const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+                return pattern.test(url);
+            }
+
+            function initiateDownload(url, type) {
+                message.textContent = 'Preparing download...';
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+
+                var progress = 0;
+                var interval = setInterval(function() {
+                    progress += 10;
+                    progressBar.style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                    }
+                }, 300);
+
+                fetch(API_URL, {  
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url, type: type })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'download';
+                    return response.blob().then(blob => {
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        window.URL.revokeObjectURL(blobUrl);
+                        link.remove();
+                        message.textContent = 'Download started...';
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    message.textContent = 'Error occurred while downloading. Please try again.';
+                })
+                .finally(() => {   
+                    resetUI();
+                });
+            }
+
+            function resetUI() {
+                urlInput.value = '';
+                urlInput.disabled = false;
+
+                progressBar.style.width = '0%';
+                progressContainer.style.display = 'none';
+
+                downloadVideo.style.display = 'block';
+                downloadAudio.style.display = 'block';
+
+                downloadVideo.disabled = false;
+                downloadAudio.disabled = false;
+                setTimeout(function() {
+                    message.textContent = '';
+                }, 4000);
+            }
+        }
+    </script>
 </body>
 </html>
