@@ -105,37 +105,33 @@
     </div>
     
     <script>
-        const API_URL = 'https://api-4uz6.onrender.com/download';
+        const API_URL = 'https://api-4uz6.onrender.com';
 
-        window.onload = function() {
-            var urlInput = document.getElementById('url');
-            var message = document.getElementById('message');
-            var downloadVideo = document.getElementById('download-video');
-            var downloadAudio = document.getElementById('download-audio');
-            var progressBar = document.getElementById('progress-bar');
-            var progressContainer = document.getElementById('progress-container');
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlInput = document.getElementById('url');
+            const message = document.getElementById('message');
+            const downloadVideo = document.getElementById('download-video');
+            const downloadAudio = document.getElementById('download-audio');
+            const progressBar = document.getElementById('progress-bar');
+            const progressContainer = document.getElementById('progress-container');
 
-            urlInput.addEventListener('input', function() { 
+            urlInput.addEventListener('input', clearMessage);
+
+            downloadVideo.addEventListener('click', () => handleDownload('video'));
+            downloadAudio.addEventListener('click', () => handleDownload('audio'));
+
+            function clearMessage() {
                 message.textContent = '';
-            });
-
-            downloadVideo.addEventListener('click', function() {
-                handleDownload('video');
-            });
-
-            downloadAudio.addEventListener('click', function() {
-                handleDownload('audio');
-            });
+            }
 
             function handleDownload(type) {
-                var url = urlInput.value;
+                const url = urlInput.value.trim();
                 if (!isValidURL(url)) {
-                    message.textContent = 'Please enter a valid YouTube URL.';
+                    showMessage('Please enter a valid YouTube URL.', 'error');
                     return;
                 }
-                initiateDownload(url, type);
-                downloadVideo.style.display = 'none';
-                downloadAudio.style.display = 'none';
+                startDownload(url, type);
+                toggleUI(false);
             }
 
             function isValidURL(url) {
@@ -143,21 +139,11 @@
                 return pattern.test(url);
             }
 
-            function initiateDownload(url, type) {
-                message.textContent = 'Preparing download...';
-                progressContainer.style.display = 'block';
-                progressBar.style.width = '0%';
+            function startDownload(url, type) {
+                showMessage('Preparing download...', 'info');
+                showProgress();
 
-                var progress = 0;
-                var interval = setInterval(function() {
-                    progress += 10;
-                    progressBar.style.width = progress + '%';
-                    if (progress >= 100) {
-                        clearInterval(interval);
-                    }
-                }, 300);
-
-                fetch(API_URL, {  
+                fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -170,44 +156,64 @@
                     }
                     const contentDisposition = response.headers.get('Content-Disposition');
                     const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'download';
-                    return response.blob().then(blob => {
-                        const blobUrl = window.URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = blobUrl;
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        window.URL.revokeObjectURL(blobUrl);
-                        link.remove();
-                        message.textContent = 'Download started...';
-                    });
+                    return response.blob().then(blob => ({ blob, filename }));
+                })
+                .then(({ blob, filename }) => {
+                    downloadBlob(blob, filename);
+                    showMessage('Download started...', 'success');
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    message.textContent = 'Error occurred while downloading. Please try again.';
+                    showMessage('Error occurred while downloading. Please try again.', 'error');
                 })
-                .finally(() => {   
-                    resetUI();
-                });
+                .finally(resetUI);
+            }
+
+            function downloadBlob(blob, filename) {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                window.URL.revokeObjectURL(blobUrl);
+                link.remove();
+            }
+
+            function showProgress() {
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                    }
+                }, 300);
+            }
+
+            function toggleUI(enable) {
+                urlInput.disabled = !enable;
+                downloadVideo.disabled = !enable;
+                downloadAudio.disabled = !enable;
+                downloadVideo.style.display = enable ? 'block' : 'none';
+                downloadAudio.style.display = enable ? 'block' : 'none';
             }
 
             function resetUI() {
-                urlInput.value = '';
-                urlInput.disabled = false;
-
+                toggleUI(true);
                 progressBar.style.width = '0%';
                 progressContainer.style.display = 'none';
-
-                downloadVideo.style.display = 'block';
-                downloadAudio.style.display = 'block';
-
-                downloadVideo.disabled = false;
-                downloadAudio.disabled = false;
-                setTimeout(function() {
-                    message.textContent = '';
-                }, 4000);
+                urlInput.value = '';
+                setTimeout(clearMessage, 4000);
             }
-        }
+
+            function showMessage(msg, type) {
+                message.textContent = msg;
+                message.style.color = type === 'error' ? '#ff6666' : type === 'success' ? '#66ff66' : '#ffffff';
+            }
+        });
     </script>
 </body>
 </html>
