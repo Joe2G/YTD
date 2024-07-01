@@ -155,7 +155,8 @@
                         throw new Error('Network response was not ok');
                     }
                     const contentDisposition = response.headers.get('Content-Disposition');
-                    const filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'download';
+                    let filename = contentDisposition ? contentDisposition.split('filename=')[1].replace(/['"]/g, '') : 'download';
+                    filename = filename.replace(/(^__)|(__$)/g, '');
                     return response.blob().then(blob => ({ blob, filename }));
                 })
                 .then(({ blob, filename }) => {
